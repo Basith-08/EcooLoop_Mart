@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  flutter_app:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: ecoloop_mart_flutter
+    ports:
+      - "8080:8080"
+    volumes:
+      - ..:/app
+      - flutter_pub_cache:/root/.pub-cache
+    stdin_open: true
+    tty: true
+    environment:
+      - FLUTTER_WEB_PORT=8080
+      - FLUTTER_WEB_HOSTNAME=0.0.0.0
+    command: >-
+      bash -lc "flutter pub get && flutter run -d web-server --web-port 8080 --web-hostname 0.0.0.0"
+    networks:
+      - flutter_network
+
+  # Optional: Database service (if you want to use PostgreSQL/MySQL instead of SQLite)
+  # db:
+  #   image: postgres:15
+  #   container_name: ecoloop_mart_db
+  #   environment:
+  #     POSTGRES_DB: ecoloop_mart
+  #     POSTGRES_USER: admin
+  #     POSTGRES_PASSWORD: password
+  #   ports:
+  #     - "5432:5432"
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data
+  #   networks:
+  #     - flutter_network
+
+volumes:
+  flutter_pub_cache:
+  # postgres_data:
+
+networks:
+  flutter_network:
+    driver: bridge

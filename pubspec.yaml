@@ -1,0 +1,74 @@
+name: ecoloop_mart
+description: A Flutter application with MVVM architecture and SQLite database for EcoLoop Mart. Supports Android, iOS, Web, Windows, macOS, and Linux.
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+# Multi-platform support
+platforms:
+  android:
+  ios:
+  web:
+  windows:
+  macos:
+  linux:
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # State Management
+  provider: ^6.1.1
+
+  # Database - Mobile (Android/iOS)
+  sqflite: ^2.3.0
+
+  # Database - Desktop & Web
+  sqflite_common_ffi: ^2.3.0
+  sqflite_common_ffi_web: ^0.4.2+1
+  sqlite3_flutter_libs: ^0.5.0
+
+  # Path utilities
+  path: ^1.8.3
+  path_provider: ^2.1.1
+
+  # UI Components
+  cupertino_icons: ^1.0.6
+
+  # QR Code
+  qr_flutter: ^4.1.0
+
+  # Date Formatting
+  intl: ^0.18.1
+
+  # Platform detection
+  flutter_platform_widgets: ^6.0.2
+
+  # Window management for desktop
+  window_manager: ^0.3.7
+
+  # Responsive design
+  responsive_framework: ^1.1.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  flutter_lints: ^3.0.0
+
+flutter:
+  uses-material-design: true
+
+  # Assets
+  assets:
+    - assets/icons/
+
+  # Fonts (optional - uncomment if needed)
+  # fonts:
+  #   - family: Roboto
+  #     fonts:
+  #       - asset: fonts/Roboto-Regular.ttf
+  #       - asset: fonts/Roboto-Bold.ttf
+  #         weight: 700
