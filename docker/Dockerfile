@@ -3,7 +3,7 @@ FROM ubuntu:22.04
 
 # Avoid timezone prompts
 ENV DEBIAN_FRONTEND=noninteractive
-ENV JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
+ENV JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
 
 # Install dependencies
 RUN apt-get update && apt-get install -y \
@@ -13,7 +13,7 @@ RUN apt-get update && apt-get install -y \
     xz-utils \
     zip \
     libglu1-mesa \
-    openjdk-11-jdk \
+    openjdk-17-jdk \
     wget \
     && rm -rf /var/lib/apt/lists/*
 

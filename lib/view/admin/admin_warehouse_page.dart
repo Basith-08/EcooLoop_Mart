@@ -1,3 +1,4 @@
+// admin_warehouse_page.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../viewmodel/auth_viewmodel.dart';
@@ -6,7 +7,6 @@ import '../../state/product_state.dart';
 import '../../data/models/product_model.dart';
 import '../widgets/admin_header.dart';
 import '../widgets/eco_components.dart';
-import '../widgets/eco_dialog.dart';
 import '../widgets/logout_action.dart';
 
 class AdminWarehousePage extends StatefulWidget {
@@ -17,6 +17,12 @@ class AdminWarehousePage extends StatefulWidget {
 }
 
 class _AdminWarehousePageState extends State<AdminWarehousePage> {
+  static const _pageBg = Color(0xFFF6F8FB);
+  static const _accent = Color(0xFF4169E1);
+  static const _mutedFill = Color(0xFFF5F5F5);
+  static const _pillBlue = Color(0xFFE8F1FF);
+  static const _pillOrange = Color(0xFFFFF0E5);
+
   final List<String> _iconOptions = const [
     'Ikon Beras',
     'Ikon Minyak',
@@ -38,308 +44,198 @@ class _AdminWarehousePageState extends State<AdminWarehousePage> {
     });
   }
 
-  void _showAddProductDialog() {
-    final nameController = TextEditingController();
-    final stockController = TextEditingController();
-    final priceController = TextEditingController();
-    String selectedIcon = _iconOptions.first;
-
-    showDialog(
-      context: context,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setDialogState) => AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          titlePadding: const EdgeInsets.fromLTRB(14, 12, 10, 0),
-          contentPadding: const EdgeInsets.fromLTRB(16, 8, 16, 14),
-          actionsPadding: EdgeInsets.zero,
-          title: Row(
-            children: [
-              const Expanded(
-                child: Text(
-                  'Tambah Stok Barang',
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              IconButton(
-                icon: const Icon(Icons.close),
-                onPressed: () => Navigator.pop(context),
-              ),
-            ],
-          ),
-          content: SingleChildScrollView(
+  /// Success dialog that matches the visual you provided (icon top, rounded, green "Tutup" btn).
+  Future<bool?> _showSuccessDialog({
+    required BuildContext parentContext,
+    required String title,
+    required String message,
+    bool barrierDismissible = false,
+  }) {
+    return showDialog<bool>(
+      context: parentContext,
+      barrierDismissible: barrierDismissible,
+      builder: (ctx) {
+        return Dialog(
+          insetPadding: const EdgeInsets.symmetric(horizontal: 36, vertical: 24),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(18, 18, 18, 18),
             child: Column(
               mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                EcoInputField(
-                  controller: nameController,
-                  hint: 'Nama Barang',
-                  fillColor: const Color(0xFFF5F5F5),
-                  borderColor: Colors.transparent,
-                ),
-                const SizedBox(height: 10),
-                Row(
-                  children: [
-                    Expanded(
-                      child: EcoInputField(
-                        controller: stockController,
-                        hint: 'Stok',
-                        keyboardType: TextInputType.number,
-                        fillColor: const Color(0xFFF5F5F5),
-                        borderColor: Colors.transparent,
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: EcoInputField(
-                        controller: priceController,
-                        hint: 'Poin',
-                        keyboardType: TextInputType.number,
-                        fillColor: const Color(0xFFF5F5F5),
-                        borderColor: Colors.transparent,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 10),
+                // top icon box
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  width: 56,
+                  height: 56,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFF5F5F5),
+                    color: const Color(0xFFE8F6EC),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: DropdownButtonHideUnderline(
-                    child: DropdownButton<String>(
-                      isExpanded: true,
-                      value: selectedIcon,
-                      items: _iconOptions
-                          .map((icon) => DropdownMenuItem(
-                                value: icon,
-                                child: Text(icon),
-                              ))
-                          .toList(),
-                      onChanged: (value) {
-                        setDialogState(() {
-                          selectedIcon = value!;
-                        });
-                      },
+                  child: Center(
+                    child: Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF1AA260),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Icon(Icons.recycling, color: Colors.white, size: 22),
                     ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
+                const SizedBox(height: 8),
+                Text(message, textAlign: TextAlign.center, style: const TextStyle(fontSize: 13, color: Colors.black54)),
+                const SizedBox(height: 16),
+                SizedBox(
+                  width: 120,
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.of(ctx).pop(true), // use builder ctx — safe to pop THIS dialog
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF1AA260),
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      elevation: 6,
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                    ),
+                    child: const Text('Tutup', style: TextStyle(fontWeight: FontWeight.w700)),
                   ),
                 ),
               ],
             ),
           ),
-          actions: [
-            EcoPrimaryButton(
-              label: 'Simpan',
-              height: 50,
-              color: const Color(0xFF4169E1),
-              onPressed: () async {
-                if (nameController.text.isEmpty ||
-                    stockController.text.isEmpty ||
-                    priceController.text.isEmpty) {
-                  await showEcoDialog(
-                    context,
-                    title: 'Data belum lengkap',
-                    message: 'Semua field harus diisi sebelum menyimpan.',
-                    type: EcoDialogType.warning,
-                  );
-                  return;
-                }
-
-                await context.read<ProductViewModel>().createProduct(
-                      name: nameController.text,
-                      stock: int.parse(stockController.text),
-                      price: double.parse(priceController.text),
-                      category: selectedIcon,
-                    );
-
-                if (!mounted) return;
-                Navigator.pop(context);
-                await showEcoDialog(
-                  context,
-                  title: 'Produk tersimpan',
-                  message: 'Produk baru berhasil ditambahkan ke gudang.',
-                  type: EcoDialogType.success,
-                );
-              },
-            ),
-          ],
-        ),
-      ),
+        );
+      },
     );
   }
 
-  void _showEditProductDialog(ProductModel product) {
-    final nameController = TextEditingController(text: product.name);
-    final stockController =
-        TextEditingController(text: product.stock.toString());
-    final priceController =
-        TextEditingController(text: product.price.toInt().toString());
-    String selectedIcon = product.category;
-
-    showDialog(
-      context: context,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setDialogState) => AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          titlePadding: const EdgeInsets.fromLTRB(14, 12, 10, 0),
-          contentPadding: const EdgeInsets.fromLTRB(16, 8, 16, 14),
-          actionsPadding: EdgeInsets.zero,
-          title: Row(
-            children: [
-              const Expanded(
-                child: Text(
-                  'Edit Barang',
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              IconButton(
-                icon: const Icon(Icons.close),
-                onPressed: () => Navigator.pop(context),
-              ),
-            ],
-          ),
-          content: SingleChildScrollView(
+  /// Confirmation dialog for deletions (Batal / Hapus)
+  Future<bool?> _showConfirmDeleteDialog({
+    required BuildContext parentContext,
+    required String title,
+    required String message,
+    bool barrierDismissible = false,
+  }) {
+    return showDialog<bool>(
+      context: parentContext,
+      barrierDismissible: barrierDismissible,
+      builder: (ctx) {
+        return Dialog(
+          insetPadding: const EdgeInsets.symmetric(horizontal: 36, vertical: 24),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(18, 18, 18, 14),
             child: Column(
               mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                EcoInputField(
-                  controller: nameController,
-                  hint: 'Nama Barang',
-                  fillColor: const Color(0xFFF5F5F5),
-                  borderColor: Colors.transparent,
-                ),
-                const SizedBox(height: 10),
+                Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
+                const SizedBox(height: 8),
+                Text(message, textAlign: TextAlign.center, style: const TextStyle(fontSize: 13, color: Colors.black54)),
+                const SizedBox(height: 14),
                 Row(
                   children: [
                     Expanded(
-                      child: EcoInputField(
-                        controller: stockController,
-                        hint: 'Stok',
-                        keyboardType: TextInputType.number,
-                        fillColor: const Color(0xFFF5F5F5),
-                        borderColor: Colors.transparent,
+                      child: OutlinedButton(
+                        onPressed: () => Navigator.of(ctx).pop(false),
+                        style: OutlinedButton.styleFrom(
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                        ),
+                        child: const Text('Batal'),
                       ),
                     ),
                     const SizedBox(width: 10),
                     Expanded(
-                      child: EcoInputField(
-                        controller: priceController,
-                        hint: 'Poin',
-                        keyboardType: TextInputType.number,
-                        fillColor: const Color(0xFFF5F5F5),
-                        borderColor: Colors.transparent,
+                      child: ElevatedButton(
+                        onPressed: () => Navigator.of(ctx).pop(true),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFFE1444B),
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                        ),
+                        child: const Text('Hapus'),
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 10),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF5F5F5),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: DropdownButtonHideUnderline(
-                    child: DropdownButton<String>(
-                      isExpanded: true,
-                      value: selectedIcon,
-                      items: _iconOptions
-                          .map((icon) => DropdownMenuItem(
-                                value: icon,
-                                child: Text(icon),
-                              ))
-                          .toList(),
-                      onChanged: (value) {
-                        setDialogState(() {
-                          selectedIcon = value!;
-                        });
-                      },
-                    ),
-                  ),
-                ),
               ],
             ),
           ),
-          actions: [
-            EcoPrimaryButton(
-              label: 'Simpan',
-              height: 50,
-              color: const Color(0xFF4169E1),
-              onPressed: () async {
-                if (nameController.text.isEmpty ||
-                    stockController.text.isEmpty ||
-                    priceController.text.isEmpty) {
-                  await showEcoDialog(
-                    context,
-                    title: 'Data belum lengkap',
-                    message: 'Semua field harus diisi sebelum menyimpan.',
-                    type: EcoDialogType.warning,
-                  );
-                  return;
-                }
+        );
+      },
+    );
+  }
 
-                final updatedProduct = product.copyWith(
-                  name: nameController.text,
-                  stock: int.parse(stockController.text),
-                  price: double.parse(priceController.text),
-                  category: selectedIcon,
-                );
-
-                await context
-                    .read<ProductViewModel>()
-                    .updateProduct(updatedProduct);
-
-                if (!mounted) return;
-                Navigator.pop(context);
-                await showEcoDialog(
-                  context,
-                  title: 'Produk diperbarui',
-                  message: 'Data produk berhasil diupdate.',
-                  type: EcoDialogType.success,
-                );
-              },
-            ),
-          ],
-        ),
+  Future<void> _showAddProductDialog() async {
+    final result = await showDialog<bool>(
+      context: context,
+      useSafeArea: true,
+      builder: (context) => _ProductDialog(
+        title: 'Tambah Stok Barang',
+        iconOptions: _iconOptions,
+        primaryColor: _accent,
+        mutedFill: _mutedFill,
+        onSubmit: (name, stock, point, category) async {
+          await context.read<ProductViewModel>().createProduct(
+                name: name,
+                stock: stock,
+                price: point.toDouble(),
+                category: category,
+              );
+        },
       ),
     );
+
+    if (result == true && mounted) {
+      // show success dialog styled like the image
+      await _showSuccessDialog(parentContext: context, title: 'Berhasil', message: 'Produk tersimpan.', barrierDismissible: false);
+    }
+  }
+
+  Future<void> _showEditProductDialog(ProductModel product) async {
+    final result = await showDialog<bool>(
+      context: context,
+      useSafeArea: true,
+      builder: (context) => _ProductDialog(
+        title: 'Edit Barang',
+        iconOptions: _iconOptions,
+        initialName: product.name,
+        initialStock: product.stock,
+        initialPoint: product.price.toInt(),
+        initialCategory: product.category,
+        primaryColor: _accent,
+        mutedFill: _mutedFill,
+        onSubmit: (name, stock, point, category) async {
+          final updated = product.copyWith(
+            name: name,
+            stock: stock,
+            price: point.toDouble(),
+            category: category,
+          );
+          await context.read<ProductViewModel>().updateProduct(updated);
+        },
+      ),
+    );
+
+    if (result == true && mounted) {
+      await _showSuccessDialog(parentContext: context, title: 'Berhasil', message: 'Produk diperbarui.', barrierDismissible: false);
+    }
   }
 
   void _deleteProduct(ProductModel product) async {
-    final confirmed = await showEcoDialog<bool>(
-      context,
+    final confirmed = await _showConfirmDeleteDialog(
+      parentContext: context,
       title: 'Hapus produk?',
-      message: 'Produk ${product.name} akan dihapus dari daftar stok.',
-      type: EcoDialogType.warning,
-      actions: [
-        EcoDialogAction(
-          label: 'Batal',
-          onPressed: () => Navigator.of(context).pop(false),
-        ),
-        EcoDialogAction(
-          label: 'Hapus',
-          isPrimary: true,
-          onPressed: () => Navigator.of(context).pop(true),
-        ),
-      ],
+      message: 'Produk "${product.name}" akan dihapus dari daftar stok.',
+      barrierDismissible: false,
     );
 
     if (confirmed == true && product.id != null) {
       await context.read<ProductViewModel>().deleteProduct(product.id!);
       if (!mounted) return;
-      await showEcoDialog(
-        context,
-        title: 'Produk dihapus',
-        message: 'Produk berhasil dihapus dari stok.',
-        type: EcoDialogType.success,
-      );
+      await _showSuccessDialog(parentContext: context, title: 'Produk dihapus', message: 'Produk berhasil dihapus dari stok.', barrierDismissible: false);
     }
   }
 
@@ -353,38 +249,41 @@ class _AdminWarehousePageState extends State<AdminWarehousePage> {
     final adminName = authViewModel.currentUser?.name ?? 'Admin';
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF6F8FB),
+      backgroundColor: _pageBg,
       appBar: AdminHeader(
         adminName: adminName,
         onLogout: _handleLogout,
       ),
       body: Column(
         children: [
+          // Top action panel (button centered)
           Container(
             color: Colors.white,
-            padding: const EdgeInsets.all(AdminTheme.pagePadding),
-            child: Align(
-              alignment: Alignment.center,
+            padding: const EdgeInsets.symmetric(vertical: 18, horizontal: AdminTheme.pagePadding),
+            child: Center(
               child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 320),
-                child: ElevatedButton.icon(
-                  onPressed: _showAddProductDialog,
-                  icon: const Icon(Icons.add),
-                  label: const Text('Tambah Stok Barang'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFE9F1FF),
-                    foregroundColor: const Color(0xFF4169E1),
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                constraints: const BoxConstraints(maxWidth: 520),
+                child: Center(
+                  child: ElevatedButton.icon(
+                    onPressed: _showAddProductDialog,
+                    icon: const Icon(Icons.add_circle_outline),
+                    label: const Text('Tambah Stok Barang'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFE9F1FF),
+                      foregroundColor: _accent,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      minimumSize: const Size(170, 48),
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      textStyle: const TextStyle(fontWeight: FontWeight.w600),
                     ),
-                    minimumSize: const Size.fromHeight(50),
-                    padding: const EdgeInsets.symmetric(horizontal: 18),
                   ),
                 ),
               ),
             ),
           ),
+
+          // Content
           Expanded(
             child: Consumer<ProductViewModel>(
               builder: (context, viewModel, child) {
@@ -393,111 +292,88 @@ class _AdminWarehousePageState extends State<AdminWarehousePage> {
                 }
 
                 if (viewModel.state is ProductError) {
-                  return Center(
-                    child: Text((viewModel.state as ProductError).message),
-                  );
+                  return Center(child: Text((viewModel.state as ProductError).message));
                 }
 
                 if (viewModel.state is ProductEmpty) {
-                  return const Center(
-                    child: Text('Belum ada produk'),
-                  );
+                  return const Center(child: Text('Belum ada produk'));
                 }
 
                 if (viewModel.state is ProductLoaded) {
                   final products = (viewModel.state as ProductLoaded).products;
 
-                  return ListView.builder(
-                    padding: const EdgeInsets.all(14),
+                  return ListView.separated(
+                    padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 14),
                     itemCount: products.length,
+                    separatorBuilder: (context, index) => const SizedBox(height: 10),
                     itemBuilder: (context, index) {
-                      final product = products[index];
-                      return Container(
-                        margin: const EdgeInsets.only(bottom: 8),
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 8),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
+                      final p = products[index];
+
+                      return Material(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        elevation: 0,
+                        child: InkWell(
                           borderRadius: BorderRadius.circular(12),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.04),
-                              blurRadius: 10,
-                              offset: const Offset(0, 6),
-                            ),
-                          ],
-                        ),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            CircleAvatar(
-                              radius: 16,
-                              backgroundColor: const Color(0xFFE9F1FF),
-                              child: Icon(
-                                _iconForCategory(product.category),
-                                color: const Color(0xFF4169E1),
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    product.name,
-                                    style: const TextStyle(
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w700,
-                                      color: Color(0xFF1F2430),
-                                    ),
-                                  ),
-                                  const SizedBox(height: 6),
-                                  Row(
-                                    children: [
-                                      EcoPill(
-                                        label: 'Stok: ${product.stock}',
-                                        color: const Color(0xFF2E86FF),
-                                        background: const Color(0xFFE8F1FF),
-                                      ),
-                                      const SizedBox(width: 8),
-                                      EcoPill(
-                                        label: '${product.price.toInt()} Poin',
-                                        color: const Color(0xFFFF8C42),
-                                        background: const Color(0xFFFFF0E5),
-                                      ),
-                                    ],
-                                  )
-                                ],
-                              ),
-                            ),
-                            Row(
-                              mainAxisSize: MainAxisSize.min,
+                          onTap: () => _showEditProductDialog(p),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                            child: Row(
                               children: [
-                                IconButton(
-                                  constraints: const BoxConstraints(
-                                    minWidth: 32,
-                                    minHeight: 32,
-                                  ),
-                                  padding: EdgeInsets.zero,
-                                  icon: const Icon(Icons.edit_outlined, size: 18),
-                                  color: const Color(0xFF2E86FF),
-                                  onPressed: () =>
-                                      _showEditProductDialog(product),
+                                CircleAvatar(
+                                  radius: 22,
+                                  backgroundColor: const Color(0xFFE9F1FF),
+                                  child: Icon(_iconForCategory(p.category), color: _accent, size: 20),
                                 ),
-                                const SizedBox(width: 4),
-                                IconButton(
-                                  constraints: const BoxConstraints(
-                                    minWidth: 32,
-                                    minHeight: 32,
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        p.name,
+                                        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: Color(0xFF1F2430)),
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Row(
+                                        children: [
+                                          EcoPill(
+                                            label: 'Stok: ${p.stock}',
+                                            color: const Color(0xFF2E86FF),
+                                            background: _pillBlue,
+                                          ),
+                                          const SizedBox(width: 8),
+                                          EcoPill(
+                                            label: '${p.price.toInt()} Poin',
+                                            color: const Color(0xFFFF8C42),
+                                            background: _pillOrange,
+                                          ),
+                                        ],
+                                      )
+                                    ],
                                   ),
-                                  padding: EdgeInsets.zero,
-                                  icon: const Icon(Icons.delete_outline, size: 18),
-                                  color: const Color(0xFFE1444B),
-                                  onPressed: () => _deleteProduct(product),
                                 ),
+                                Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    IconButton(
+                                      icon: const Icon(Icons.edit_outlined, size: 20),
+                                      color: const Color(0xFF2E86FF),
+                                      onPressed: () => _showEditProductDialog(p),
+                                      tooltip: 'Edit',
+                                    ),
+                                    const SizedBox(width: 4),
+                                    IconButton(
+                                      icon: const Icon(Icons.delete_outline, size: 20),
+                                      color: const Color(0xFFE1444B),
+                                      onPressed: () => _deleteProduct(p),
+                                      tooltip: 'Hapus',
+                                    ),
+                                  ],
+                                )
                               ],
                             ),
-                          ],
+                          ),
                         ),
                       );
                     },
@@ -529,5 +405,277 @@ class _AdminWarehousePageState extends State<AdminWarehousePage> {
       default:
         return Icons.rice_bowl;
     }
+  }
+}
+
+/// Dialog widget used for both Add and Edit.
+/// Uses an internal Form and returns via `Navigator.pop(true)` on success.
+class _ProductDialog extends StatefulWidget {
+  final String title;
+  final List<String> iconOptions;
+  final String? initialName;
+  final int? initialStock;
+  final int? initialPoint;
+  final String? initialCategory;
+  final Color primaryColor;
+  final Color mutedFill;
+  final Future<void> Function(String name, int stock, int point, String category) onSubmit;
+
+  const _ProductDialog({
+    required this.title,
+    required this.iconOptions,
+    this.initialName,
+    this.initialStock,
+    this.initialPoint,
+    this.initialCategory,
+    required this.primaryColor,
+    required this.mutedFill,
+    required this.onSubmit,
+  });
+
+  @override
+  State<_ProductDialog> createState() => _ProductDialogState();
+}
+
+class _ProductDialogState extends State<_ProductDialog> {
+  final _formKey = GlobalKey<FormState>();
+  late final TextEditingController _nameCtrl;
+  late final TextEditingController _stockCtrl;
+  late final TextEditingController _pointCtrl;
+  late String _selectedIcon;
+  bool _submitting = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _nameCtrl = TextEditingController(text: widget.initialName ?? '');
+    _stockCtrl = TextEditingController(text: widget.initialStock?.toString() ?? '');
+    _pointCtrl = TextEditingController(text: widget.initialPoint?.toString() ?? '');
+    _selectedIcon = widget.initialCategory ?? widget.iconOptions.first;
+  }
+
+  @override
+  void dispose() {
+    _nameCtrl.dispose();
+    _stockCtrl.dispose();
+    _pointCtrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _handleSave() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    final name = _nameCtrl.text.trim();
+    final stock = int.tryParse(_stockCtrl.text.trim()) ?? -1;
+    final point = int.tryParse(_pointCtrl.text.trim()) ?? -1;
+
+    if (stock < 0 || point < 0) {
+      // Use a simple dialog to show validation error
+      if (!mounted) return;
+      await showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('Format angka salah'),
+          content: const Text('Pastikan Stok dan Poin diisi dengan angka yang benar.'),
+          actions: [
+            TextButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text('Tutup'))
+          ],
+        ),
+      );
+      return;
+    }
+
+    setState(() => _submitting = true);
+    try {
+      await widget.onSubmit(name, stock, point, _selectedIcon);
+
+      if (!mounted) return;
+      Navigator.of(context).pop(true); // return success to caller
+    } catch (e) {
+      if (!mounted) return;
+      await showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('Terjadi kesalahan'),
+          content: Text(e.toString()),
+          actions: [
+            TextButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text('Tutup'))
+          ],
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _submitting = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // Calculate insets and safe padding
+    final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+    final bottomSystemPadding = MediaQuery.of(context).padding.bottom;
+    final availableHeight = MediaQuery.of(context).size.height;
+    final maxDialogHeight = availableHeight * 0.9; // keep some margin from screen edges
+
+    return Dialog(
+      insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+      child: SafeArea(
+        child: SingleChildScrollView(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxWidth: 420,
+              // ensure dialog never goes beyond max height so Flutter will allow scrolling
+              maxHeight: maxDialogHeight,
+            ),
+            child: Padding(
+              // include bottom inset (keyboard) and system bottom padding (navigation bar)
+              padding: EdgeInsets.fromLTRB(18, 16, 18, 14 + bottomInset + bottomSystemPadding),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Title + close
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          widget.title,
+                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.close),
+                        onPressed: () => Navigator.of(context).pop(),
+                        splashRadius: 20,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  Form(
+                    key: _formKey,
+                    child: Column(
+                      children: [
+                        // Name
+                        TextFormField(
+                          controller: _nameCtrl,
+                          decoration: InputDecoration(
+                            hintText: 'Nama Barang',
+                            filled: true,
+                            fillColor: widget.mutedFill,
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                          ),
+                          textInputAction: TextInputAction.next,
+                          validator: (v) => (v == null || v.trim().isEmpty) ? 'Nama barang wajib diisi' : null,
+                        ),
+                        const SizedBox(height: 12),
+
+                        // Stock & Point
+                        Row(
+                          children: [
+                            Expanded(
+                              child: TextFormField(
+                                controller: _stockCtrl,
+                                keyboardType: TextInputType.number,
+                                decoration: InputDecoration(
+                                  hintText: 'Stok',
+                                  filled: true,
+                                  fillColor: widget.mutedFill,
+                                  contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+                                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                                ),
+                                validator: (v) {
+                                  if (v == null || v.trim().isEmpty) return 'Stok wajib diisi';
+                                  if (int.tryParse(v.trim()) == null) return 'Masukkan angka valid';
+                                  return null;
+                                },
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: TextFormField(
+                                controller: _pointCtrl,
+                                keyboardType: TextInputType.number,
+                                decoration: InputDecoration(
+                                  hintText: 'Poin',
+                                  filled: true,
+                                  fillColor: widget.mutedFill,
+                                  contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+                                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                                ),
+                                validator: (v) {
+                                  if (v == null || v.trim().isEmpty) return 'Poin wajib diisi';
+                                  if (int.tryParse(v.trim()) == null) return 'Masukkan angka valid';
+                                  return null;
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
+
+                        const SizedBox(height: 12),
+
+                        // Dropdown
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                          decoration: BoxDecoration(color: widget.mutedFill, borderRadius: BorderRadius.circular(12)),
+                          child: DropdownButtonHideUnderline(
+                            child: DropdownButton<String>(
+                              isExpanded: true,
+                              value: _selectedIcon,
+                              items: widget.iconOptions.map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
+                              onChanged: (v) {
+                                if (v == null) return;
+                                setState(() {
+                                  _selectedIcon = v;
+                                });
+                              },
+                            ),
+                          ),
+                        ),
+
+                        const SizedBox(height: 18),
+
+                        // Buttons
+                        Row(
+                          children: [
+                            Expanded(
+                              child: OutlinedButton(
+                                onPressed: _submitting ? null : () => Navigator.of(context).pop(),
+                                style: OutlinedButton.styleFrom(
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                  foregroundColor: Colors.green,
+                                  padding: const EdgeInsets.symmetric(vertical: 14),
+                                ),
+                                child: const Text('Batal'),
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: ElevatedButton(
+                                onPressed: _submitting ? null : _handleSave,
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: widget.primaryColor,
+                                  foregroundColor: Colors.white,
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                  padding: const EdgeInsets.symmetric(vertical: 14),
+                                  elevation: 0,
+                                ),
+                                child: _submitting
+                                    ? const SizedBox(height: 18, width: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                                    : const Text('Simpan', style: TextStyle(fontWeight: FontWeight.w700)),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }

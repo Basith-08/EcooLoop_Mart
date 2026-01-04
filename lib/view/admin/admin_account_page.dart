@@ -26,7 +26,11 @@ class _AdminAccountPageState extends State<AdminAccountPage>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: 2, vsync: this)
+      ..addListener(() {
+        // pastikan rebuild saat tab berubah agar indikator kustom ikut berubah warna
+        if (mounted) setState(() {});
+      });
     _loadData();
   }
 
@@ -95,8 +99,7 @@ class _AdminAccountPageState extends State<AdminAccountPage>
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(10),
         ),
-        titlePadding: EdgeInsets.symmetric(
-            horizontal: 16, vertical: 12), // Adjusted for better mobile spacing
+        titlePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         actionsPadding: EdgeInsets.zero,
         title: Row(
           children: [
@@ -202,6 +205,7 @@ class _AdminAccountPageState extends State<AdminAccountPage>
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
+                  padding: const EdgeInsets.symmetric(vertical: 14),
                 ),
                 child: const Text('Simpan'),
               ),
@@ -350,12 +354,30 @@ class _AdminAccountPageState extends State<AdminAccountPage>
                     ),
                     const SizedBox(height: 10),
 
-                    // Save Button
-                    EcoPrimaryButton(
-                      label: 'Simpan',
-                      onPressed: _createAccount,
-                      color: const Color(0xFF2E86FF),
-                      height: 42,
+                    // Save Button (fixed so text tidak terpotong)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      child: SizedBox(
+                        width: double.infinity,
+                        height: 46, // cukup tinggi sehingga teks tidak terpotong
+                        child: ElevatedButton(
+                          onPressed: _createAccount,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF2E86FF),
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 8),
+                          ),
+                          child: const Text(
+                            'Simpan',
+                            style: TextStyle(
+                                fontSize: 15, fontWeight: FontWeight.w700),
+                          ),
+                        ),
+                      ),
                     ),
                   ],
                 ),
@@ -427,9 +449,7 @@ class _AdminAccountPageState extends State<AdminAccountPage>
                                 ? const Color(0xFFFFE8DC)
                                 : const Color(0xFFE8F5E9),
                             child: Icon(
-                              isAdmin
-                                  ? Icons.admin_panel_settings
-                                  : Icons.person,
+                              isAdmin ? Icons.admin_panel_settings : Icons.person,
                               color: isAdmin
                                   ? const Color(0xFFFF8C42)
                                   : const Color(0xFF2D9F5D),
@@ -495,8 +515,8 @@ class _AdminAccountPageState extends State<AdminAccountPage>
                                 onTap: () => _showEditUserDialog(user),
                                 child: Container(
                                   padding: const EdgeInsets.all(6),
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFFE9F1FF),
+                                  decoration: const BoxDecoration(
+                                    color: Color(0xFFE9F1FF),
                                     shape: BoxShape.circle,
                                   ),
                                   child: const Icon(
