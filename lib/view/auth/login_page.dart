@@ -23,14 +23,20 @@ class _LoginPageState extends State<LoginPage>
   final Color _green = const Color(0xFF2D9F5D);
   final Color _orange = const Color(0xFFFF8C42);
 
+  /// Flag untuk mencegah navigasi/dialog handling berulang saat provider
+  /// tetap berada pada state Authenticated.
+  bool _isHandlingAuth = false;
+
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
     _tabController.addListener(() {
+      // ketika pindah tab, bersihkan input dan reset flag penanganan
       setState(() {
         _usernameController.clear();
         _passwordController.clear();
+        _isHandlingAuth = false;
       });
     });
   }
@@ -51,10 +57,13 @@ class _LoginPageState extends State<LoginPage>
     if (!_formKey.currentState!.validate()) return;
 
     final authViewModel = context.read<AuthViewModel>();
+    // panggil login (asumsi AuthViewModel mengatur state ke AuthLoading -> Authenticated/ Error)
     await authViewModel.login(
       _usernameController.text.trim(),
       _passwordController.text.trim(),
     );
+
+    // Navigasi/deteksi dilakukan oleh Consumer di build sehingga kita tidak memanggil navigator di sini.
   }
 
   @override
@@ -64,20 +73,74 @@ class _LoginPageState extends State<LoginPage>
       body: SafeArea(
         child: Consumer<AuthViewModel>(
           builder: (context, authViewModel, child) {
-            // Listen to auth state changes
-            if (authViewModel.state is Authenticated) {
+            // Jika sudah ter-authenticate dan belum ditangani -> handle sekali
+            if (authViewModel.state is Authenticated && !_isHandlingAuth) {
+              _isHandlingAuth = true; // set agar tidak dipanggil berulang
               final user = (authViewModel.state as Authenticated).user;
+              final bool isAdmin = user.isAdmin == true;
 
-              // Navigate based on role
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                if (user.isAdmin) {
+              WidgetsBinding.instance.addPostFrameCallback((_) async {
+                final activeTabIsAdmin = _tabController.index == 1;
+
+                if (activeTabIsAdmin && isAdmin) {
+                  // Admin tab aktif & user admin -> navigasi
                   Navigator.of(context).pushReplacement(
                     MaterialPageRoute(builder: (_) => const AdminHomePage()),
                   );
-                } else {
+                } else if (!activeTabIsAdmin && !isAdmin) {
+                  // Warga tab aktif & user bukan admin -> navigasi
                   Navigator.of(context).pushReplacement(
                     MaterialPageRoute(builder: (_) => const WargaHomePage()),
                   );
+                } else {
+                  // Role mismatch:
+                  // 1) logout agar state tidak lagi Authenticated (mencegah dialog re-show / auto-login)
+                  // 2) tampilkan dialog informasi
+                  // 3) bersihkan input dan reset flag _isHandlingAuth agar login berikutnya bisa diproses
+                  try {
+                    // Hentikan session di viewmodel agar state berubah
+                    if (authViewModel.logout != null) {
+                      // jika ada method logout pada viewmodel
+                      await authViewModel.logout();
+                    } else {
+                      // fallback: kalau tidak ada logout, coba set state melalui method yang sesuai
+                      // (jika AuthViewModel tidak punya logout, sesuaikan sendiri pada kode project)
+                    }
+                  } catch (_) {
+                    // ignore logout error; tetap lanjut tampilkan dialog
+                  }
+
+                  await showDialog<void>(
+                    context: context,
+                    barrierDismissible: true,
+                    builder: (ctx) {
+                      return AlertDialog(
+                        title: const Text('Peran Akun Tidak Sesuai'),
+                        content: Text(
+                          activeTabIsAdmin
+                              ? 'Akun ini bukan akun Admin. Silakan login melalui tab WARGA atau gunakan akun Admin.'
+                              : 'Akun ini adalah Admin. Silakan login melalui tab ADMIN.',
+                        ),
+                        actions: [
+                          TextButton(
+                            onPressed: () {
+                              Navigator.of(ctx).pop(); // tutup dialog
+                            },
+                            child: const Text('OK'),
+                          ),
+                        ],
+                      );
+                    },
+                  );
+
+                  // setelah dialog ditutup, bersihkan input dan reset flag handling
+                  if (mounted) {
+                    setState(() {
+                      _usernameController.clear();
+                      _passwordController.clear();
+                      _isHandlingAuth = false;
+                    });
+                  }
                 }
               });
             }
