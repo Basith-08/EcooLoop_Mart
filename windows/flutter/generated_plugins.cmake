@@ -3,6 +3,8 @@
 #
 
 list(APPEND FLUTTER_PLUGIN_LIST
+  cloud_firestore
+  firebase_core
   screen_retriever
   sqlite3_flutter_libs
   window_manager

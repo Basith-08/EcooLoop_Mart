@@ -255,9 +255,17 @@ dependencies:
   # State Management
   provider: ^6.1.1
 
-  # Database
+  # Firebase (Cloud Sync)
+  firebase_core: ^3.8.1
+  cloud_firestore: ^5.5.1
+
+  # Local Database
   sqflite: ^2.3.0
+  sqflite_common_ffi: ^2.3.0
+  sqflite_common_ffi_web: ^0.4.2+1
+  sqlite3_flutter_libs: ^0.5.0
   path: ^1.8.3
+  path_provider: ^2.1.1
 
   # QR Code
   qr_flutter: ^4.1.0
@@ -265,8 +273,11 @@ dependencies:
   # Date Formatting
   intl: ^0.18.1
 
-  # UI Components
+  # UI & Platform
   cupertino_icons: ^1.0.6
+  flutter_platform_widgets: ^6.0.2
+  responsive_framework: ^1.1.0
+  window_manager: ^0.3.7
 ```
 
 ---
@@ -478,11 +489,12 @@ String hashPassword(String password) {
 
 1. **Password Security**: Passwords stored in plain text (implement hashing before production)
 2. **No Image Upload**: Product images use icon categories only
-3. **No Network**: Fully offline SQLite-based
-4. **No Sync**: No cloud backup or multi-device sync
+3. ~~**No Network**: Fully offline SQLite-based~~ - **FIXED**: Firebase Firestore integrated! ✅
+4. ~~**No Sync**: No cloud backup or multi-device sync~~ - **FIXED**: Hybrid sync implemented! ✅
 5. **QR Scanner**: QR code dialog shows code but no scanner implementation
 6. **No Email Verification**: Email field exists but not validated
 7. **No Forgot Password**: Must reset through admin
+8. **Firebase Config**: `google-services.json` harus di-download manual (tidak di-commit)
 
 ---
 
@@ -508,9 +520,86 @@ String hashPassword(String password) {
 ### Low Priority
 - [ ] Dark mode
 - [ ] Multi-language support (Bahasa & English)
-- [ ] Cloud sync (Firebase)
+- [x] Cloud sync (Firebase) - **IMPLEMENTED!** 🎉
 - [ ] Social sharing features
 - [ ] Tutorial/onboarding flow
+
+---
+
+## ☁️ Firebase Integration (NEW!)
+
+EcoLoop Mart sekarang support **hybrid database system**:
+- **SQLite**: Local storage (offline-first)
+- **Firebase Firestore**: Cloud backup & sync
+
+### Features
+- ✅ Offline-first: App tetap berfungsi tanpa internet
+- ✅ Auto background sync ke cloud
+- ✅ Manual sync control
+- ✅ Real-time updates dari cloud
+- ✅ Multi-device synchronization
+
+### Setup Firebase
+
+**⚠️ PENTING: Untuk Public Repository**
+
+1. File `android/app/google-services.json` **TIDAK** di-commit ke repository
+2. Setiap developer harus download sendiri dari Firebase Console
+3. Setup Firestore Security Rules sebelum production
+
+**Langkah Setup:**
+
+1. **Create Firebase Project**
+   - Go to [Firebase Console](https://console.firebase.google.com/)
+   - Create new project atau gunakan existing
+
+2. **Download google-services.json**
+   - Add Android app di Firebase Console
+   - Download `google-services.json`
+   - Copy ke `android/app/google-services.json`
+
+3. **Setup Firestore Database**
+   - Go to Firestore Database → Create Database
+   - Start in **test mode** (untuk development)
+
+4. **Run the app**
+   ```bash
+   flutter pub get
+   flutter run
+   ```
+
+### Firebase Documentation
+
+- [Firestore Usage Guide](FIRESTORE_USAGE_GUIDE.md) - Panduan dasar Firestore
+- [Hybrid Sync Guide](HYBRID_SYNC_GUIDE.md) - Panduan lengkap hybrid SQLite + Firestore
+
+### Hybrid Repository
+
+Tersedia 3 jenis repository:
+- `UserRepository`: SQLite only (original)
+- `UserFirestoreRepository`: Firestore only (example)
+- `UserHybridRepository`: **SQLite + Firestore** (recommended untuk cloud sync)
+
+### Sync Usage
+
+```dart
+// Get sync viewmodel
+final syncVM = context.read<SyncViewModel>();
+
+// Bidirectional sync (upload & download)
+await syncVM.syncBidirectional();
+
+// Check status
+if (syncVM.hasSuccess) {
+  print('Synced: ${syncVM.lastSyncedItems} items');
+}
+```
+
+### Security Notes
+
+1. **NEVER commit `google-services.json`** to public repo (sudah di-exclude di .gitignore)
+2. Setup **Firestore Security Rules** sebelum production
+3. Consider using **Firebase Authentication** untuk enhanced security
 
 ---
 

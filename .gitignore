@@ -70,3 +70,14 @@ coverage/
 # Test related
 .test_coverage.dart
 test/.test_coverage.dart
+
+# Firebase 
+android/app/google-services.json
+ios/Runner/GoogleService-Info.plist
+firebase-debug.log
+.firebase/
+
+# IDE settings
+.vscode/
+*.code-workspace
+.claude
