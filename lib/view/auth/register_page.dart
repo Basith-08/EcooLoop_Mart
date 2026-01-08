@@ -14,6 +14,7 @@ class RegisterPage extends StatefulWidget {
 class _RegisterPageState extends State<RegisterPage> {
   final _nameController = TextEditingController();
   final _usernameController = TextEditingController();
+  final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
 
@@ -24,6 +25,7 @@ class _RegisterPageState extends State<RegisterPage> {
   void dispose() {
     _nameController.dispose();
     _usernameController.dispose();
+    _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
@@ -36,6 +38,7 @@ class _RegisterPageState extends State<RegisterPage> {
       _nameController.text.trim(),
       _usernameController.text.trim(),
       _passwordController.text.trim(),
+      email: _emailController.text.trim(),
     );
   }
 
@@ -221,6 +224,41 @@ class _RegisterPageState extends State<RegisterPage> {
                                       }
                                       if (value.trim().length < 3) {
                                         return 'Username minimal 3 karakter';
+                                      }
+                                      return null;
+                                    },
+                                  ),
+
+                                  const SizedBox(height: 16),
+
+                                  // Email Field (WAJIB untuk Firebase Auth)
+                                  TextFormField(
+                                    controller: _emailController,
+                                    keyboardType: TextInputType.emailAddress,
+                                    decoration: InputDecoration(
+                                      hintText: 'Email',
+                                      filled: true,
+                                      fillColor: const Color(0xFFF5F5F5),
+                                      border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                        borderSide: BorderSide.none,
+                                      ),
+                                      contentPadding:
+                                          const EdgeInsets.symmetric(
+                                        horizontal: 16,
+                                        vertical: 16,
+                                      ),
+                                    ),
+                                    validator: (value) {
+                                      if (value == null ||
+                                          value.trim().isEmpty) {
+                                        return 'Email harus diisi';
+                                      }
+                                      // Email validation
+                                      final emailRegex = RegExp(
+                                          r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+                                      if (!emailRegex.hasMatch(value.trim())) {
+                                        return 'Format email tidak valid';
                                       }
                                       return null;
                                     },

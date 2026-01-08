@@ -1,10 +1,10 @@
 import 'package:flutter/foundation.dart';
 import '../data/models/product_model.dart';
-import '../data/repositories/product_repository.dart';
+import '../data/repositories/product_hybrid_repository.dart';
 import '../state/product_state.dart';
 
 class ProductViewModel extends ChangeNotifier {
-  final ProductRepository _repository;
+  final ProductHybridRepository _repository;
   ProductState _state = const ProductInitial();
 
   ProductViewModel(this._repository);

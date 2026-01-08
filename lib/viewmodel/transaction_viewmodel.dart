@@ -1,10 +1,10 @@
 import 'package:flutter/foundation.dart';
 import '../data/models/transaction_model.dart';
-import '../data/repositories/transaction_repository.dart';
+import '../data/repositories/transaction_hybrid_repository.dart';
 import '../state/transaction_state.dart';
 
 class TransactionViewModel extends ChangeNotifier {
-  final TransactionRepository _repository;
+  final TransactionHybridRepository _repository;
   TransactionState _state = const TransactionInitial();
 
   TransactionViewModel(this._repository);

@@ -10,16 +10,20 @@ import 'firebase_options.dart';
 // Database
 import 'core/database/platform_db_helper.dart';
 
-// Repositories
-import 'data/repositories/user_repository.dart';
-import 'data/repositories/product_repository.dart';
-import 'data/repositories/transaction_repository.dart';
-import 'data/repositories/wallet_repository.dart';
+// Repositories - Using Hybrid (SQLite + Firestore)
+import 'data/repositories/user_hybrid_repository.dart';
+import 'data/repositories/product_hybrid_repository.dart';
+import 'data/repositories/transaction_hybrid_repository.dart';
+import 'data/repositories/wallet_hybrid_repository.dart';
 import 'data/repositories/settings_repository.dart';
-import 'data/repositories/waste_rate_repository.dart';
-import 'data/repositories/partner_repository.dart';
+import 'data/repositories/waste_rate_hybrid_repository.dart';
+import 'data/repositories/partner_hybrid_repository.dart';
 import 'data/repositories/eco_flow_repository.dart';
 import 'data/repositories/report_repository.dart';
+
+// Services
+import 'core/services/firebase_sync_service.dart';
+import 'core/services/firebase_auth_service.dart';
 
 // ViewModels
 import 'viewmodel/auth_viewmodel.dart';
@@ -29,6 +33,8 @@ import 'viewmodel/transaction_viewmodel.dart';
 import 'viewmodel/wallet_viewmodel.dart';
 import 'viewmodel/cart_viewmodel.dart';
 import 'viewmodel/waste_rate_viewmodel.dart';
+import 'viewmodel/sync_viewmodel.dart';
+import 'package:firebase_app_check/firebase_app_check.dart'; // Disabled temporarily
 
 // Views
 import 'view/auth/login_page.dart';
@@ -39,6 +45,12 @@ void main() async {
   // Initialize Firebase
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
+  );
+
+  // TODO: Enable Firebase App Check after adding SHA-256 fingerprint to Firebase Console
+  await FirebaseAppCheck.instance.activate(
+    // Use Play Integrity for Android (requires SHA-256 in Firebase Console)
+    // Use debug provider for development/testing
   );
 
   // Initialize platform-specific database
@@ -74,27 +86,35 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        // Repositories as providers (for dependency injection)
-        Provider<UserRepository>(
-          create: (_) => UserRepository(),
+        // Firebase Services
+        Provider<FirebaseSyncService>(
+          create: (_) => FirebaseSyncService(),
         ),
-        Provider<ProductRepository>(
-          create: (_) => ProductRepository(),
+        Provider<FirebaseAuthService>(
+          create: (_) => FirebaseAuthService(),
         ),
-        Provider<TransactionRepository>(
-          create: (_) => TransactionRepository(),
+
+        // Repositories as providers (Hybrid: SQLite + Firestore)
+        Provider<UserHybridRepository>(
+          create: (_) => UserHybridRepository(),
         ),
-        Provider<WalletRepository>(
-          create: (_) => WalletRepository(),
+        Provider<ProductHybridRepository>(
+          create: (_) => ProductHybridRepository(),
+        ),
+        Provider<TransactionHybridRepository>(
+          create: (_) => TransactionHybridRepository(),
+        ),
+        Provider<WalletHybridRepository>(
+          create: (_) => WalletHybridRepository(),
         ),
         Provider<SettingsRepository>(
           create: (_) => SettingsRepository(),
         ),
-        Provider<WasteRateRepository>(
-          create: (_) => WasteRateRepository(),
+        Provider<WasteRateHybridRepository>(
+          create: (_) => WasteRateHybridRepository(),
         ),
-        Provider<PartnerRepository>(
-          create: (_) => PartnerRepository(),
+        Provider<PartnerHybridRepository>(
+          create: (_) => PartnerHybridRepository(),
         ),
         Provider<EcoFlowRepository>(
           create: (context) => EcoFlowRepository(
@@ -103,34 +123,35 @@ class MyApp extends StatelessWidget {
         ),
         Provider<ReportRepository>(
           create: (context) => ReportRepository(
-            partnerRepository: context.read<PartnerRepository>(),
+            partnerRepository: context.read<PartnerHybridRepository>(),
           ),
         ),
 
         // ViewModels
         ChangeNotifierProvider<AuthViewModel>(
           create: (context) => AuthViewModel(
-            context.read<UserRepository>(),
+            context.read<UserHybridRepository>(),
+            context.read<FirebaseAuthService>(),
           ),
         ),
         ChangeNotifierProvider<UserViewModel>(
           create: (context) => UserViewModel(
-            context.read<UserRepository>(),
+            context.read<UserHybridRepository>(),
           ),
         ),
         ChangeNotifierProvider<ProductViewModel>(
           create: (context) => ProductViewModel(
-            context.read<ProductRepository>(),
+            context.read<ProductHybridRepository>(),
           ),
         ),
         ChangeNotifierProvider<TransactionViewModel>(
           create: (context) => TransactionViewModel(
-            context.read<TransactionRepository>(),
+            context.read<TransactionHybridRepository>(),
           ),
         ),
         ChangeNotifierProvider<WalletViewModel>(
           create: (context) => WalletViewModel(
-            context.read<WalletRepository>(),
+            context.read<WalletHybridRepository>(),
           ),
         ),
         ChangeNotifierProvider<CartViewModel>(
@@ -138,7 +159,17 @@ class MyApp extends StatelessWidget {
         ),
         ChangeNotifierProvider<WasteRateViewModel>(
           create: (context) => WasteRateViewModel(
-            context.read<WasteRateRepository>(),
+            context.read<WasteRateHybridRepository>(),
+          ),
+        ),
+        ChangeNotifierProvider<SyncViewModel>(
+          create: (context) => SyncViewModel(
+            userRepo: context.read<UserHybridRepository>(),
+            productRepo: context.read<ProductHybridRepository>(),
+            transactionRepo: context.read<TransactionHybridRepository>(),
+            walletRepo: context.read<WalletHybridRepository>(),
+            partnerRepo: context.read<PartnerHybridRepository>(),
+            wasteRateRepo: context.read<WasteRateHybridRepository>(),
           ),
         ),
       ],
@@ -171,7 +202,7 @@ class MyApp extends StatelessWidget {
             backgroundColor: Color(0xFF2D9F5D),
             foregroundColor: Colors.white,
           ),
-          cardTheme: CardThemeData(
+          cardTheme: CardTheme(
             elevation: 2,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),

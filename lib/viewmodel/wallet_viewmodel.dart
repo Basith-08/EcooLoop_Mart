@@ -1,10 +1,10 @@
 import 'package:flutter/foundation.dart';
 import '../data/models/wallet_model.dart';
-import '../data/repositories/wallet_repository.dart';
+import '../data/repositories/wallet_hybrid_repository.dart';
 import '../state/wallet_state.dart';
 
 class WalletViewModel extends ChangeNotifier {
-  final WalletRepository _repository;
+  final WalletHybridRepository _repository;
   WalletState _state = const WalletInitial();
 
   WalletViewModel(this._repository);

@@ -1,10 +1,10 @@
 import 'package:flutter/foundation.dart';
 import '../data/models/user_model.dart';
-import '../data/repositories/user_repository.dart';
+import '../data/repositories/user_hybrid_repository.dart';
 import '../state/user_state.dart';
 
 class UserViewModel extends ChangeNotifier {
-  final UserRepository _repository;
+  final UserHybridRepository _repository;
   UserState _state = const UserInitial();
 
   UserViewModel(this._repository);

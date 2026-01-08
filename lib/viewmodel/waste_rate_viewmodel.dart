@@ -1,11 +1,11 @@
 import 'package:flutter/foundation.dart';
-import '../data/repositories/waste_rate_repository.dart';
+import '../data/repositories/waste_rate_hybrid_repository.dart';
 import '../state/waste_rate_state.dart';
 
 class WasteRateViewModel extends ChangeNotifier {
   WasteRateViewModel(this._repository);
 
-  final WasteRateRepository _repository;
+  final WasteRateHybridRepository _repository;
   WasteRateState _state = const WasteRateInitial();
 
   WasteRateState get state => _state;

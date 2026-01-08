@@ -131,7 +131,8 @@ class FirebaseSyncService extends ChangeNotifier {
 
       for (var doc in querySnapshot.docs) {
         final data = doc.data() as Map<String, dynamic>;
-        data['id'] = doc.id; // Add document ID
+        // Note: Tidak menambahkan doc.id karena ID di SQLite adalah auto-increment integer
+        // sedangkan doc.id di Firestore adalah string. Repository akan handle ID mapping.
         items.add(fromFirestoreMap(data));
       }
 
@@ -220,7 +221,8 @@ class FirebaseSyncService extends ChangeNotifier {
         .map((snapshot) {
       return snapshot.docs.map((doc) {
         final data = doc.data();
-        data['id'] = doc.id;
+        // Note: Tidak menambahkan doc.id karena ID di SQLite adalah auto-increment integer
+        // sedangkan doc.id di Firestore adalah string. Repository akan handle ID mapping.
         return fromFirestoreMap(data);
       }).toList();
     });

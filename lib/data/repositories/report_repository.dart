@@ -1,6 +1,6 @@
 import '../../core/database/db_config.dart';
 import '../../core/database/db_helper.dart';
-import 'partner_repository.dart';
+import 'partner_hybrid_repository.dart';
 
 class AdminReportData {
   AdminReportData({
@@ -51,12 +51,12 @@ class DashboardSummary {
 class ReportRepository {
   ReportRepository({
     DBHelper? dbHelper,
-    PartnerRepository? partnerRepository,
+    PartnerHybridRepository? partnerRepository,
   })  : _dbHelper = dbHelper ?? DBHelper(),
-        _partnerRepository = partnerRepository ?? PartnerRepository();
+        _partnerRepository = partnerRepository ?? PartnerHybridRepository();
 
   final DBHelper _dbHelper;
-  final PartnerRepository _partnerRepository;
+  final PartnerHybridRepository _partnerRepository;
 
   DateTime _monthStart(DateTime now) => DateTime(now.year, now.month, 1);
   DateTime _nextMonthStart(DateTime now) =>

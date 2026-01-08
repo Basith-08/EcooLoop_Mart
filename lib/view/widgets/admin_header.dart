@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'sync_button_widget.dart';
 
 class AdminHeader extends StatelessWidget implements PreferredSizeWidget {
   const AdminHeader({
@@ -48,6 +49,7 @@ class AdminHeader extends StatelessWidget implements PreferredSizeWidget {
                   ],
                 ),
               ),
+              const SyncButtonWidget(),
               IconButton(
                 padding: const EdgeInsets.symmetric(horizontal: 8),
                 constraints: const BoxConstraints(),

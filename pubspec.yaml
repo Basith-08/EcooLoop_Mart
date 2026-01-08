@@ -23,8 +23,10 @@ dependencies:
   provider: ^6.1.1
 
   # Firebase
-  firebase_core: ^3.8.1
-  cloud_firestore: ^5.5.1
+  firebase_core: ^4.3.0
+  cloud_firestore: ^6.1.1
+  firebase_app_check: ^0.4.1+3
+  firebase_auth: ^6.1.3
 
   # Database - Mobile (Android/iOS)
   sqflite: ^2.3.0
@@ -45,13 +47,13 @@ dependencies:
   qr_flutter: ^4.1.0
 
   # Date Formatting
-  intl: ^0.18.1
+  intl: ^0.20.2
 
   # Platform detection
-  flutter_platform_widgets: ^6.0.2
+  flutter_platform_widgets: ^7.0.1
 
   # Window management for desktop
-  window_manager: ^0.3.7
+  window_manager: ^0.4.3
 
   # Responsive design
   responsive_framework: ^1.1.0
@@ -60,7 +62,7 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
 
-  flutter_lints: ^3.0.0
+  flutter_lints: ^4.0.0
 
 flutter:
   uses-material-design: true

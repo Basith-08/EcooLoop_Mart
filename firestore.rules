@@ -1,0 +1,51 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // DEVELOPMENT MODE - Untuk testing
+    // TODO: Ganti dengan authentication-based rules untuk production
+
+    // Users collection - semua bisa read, tapi write dibatasi
+    match /users/{userId} {
+      allow read: true;
+      allow create: true;
+      allow update, delete: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Products collection - semua bisa read, admin bisa write
+    match /products/{productId} {
+      allow read: true;
+      allow write: true; // TODO: Batasi hanya admin yang bisa write
+    }
+
+    // Transactions collection
+    match /transactions/{transactionId} {
+      allow read: true;
+      allow write: true;
+    }
+
+    // Wallets collection
+    match /wallets/{walletId} {
+      allow read: true;
+      allow write: true;
+    }
+
+    // Partners collection
+    match /partners/{partnerId} {
+      allow read: true;
+      allow write: true;
+    }
+
+    // Waste Rates collection
+    match /waste_rates/{rateId} {
+      allow read: true;
+      allow write: true;
+    }
+
+    // Default: deny all untuk collection lain
+    match /{document=**} {
+      allow read, write: false;
+    }
+  }
+}

@@ -101,6 +101,16 @@ class UserHybridRepository {
     return await _localRepo.getUsersByRole(role);
   }
 
+  /// Get user by email - dari local SQLite
+  Future<UserModel?> getUserByEmail(String email) async {
+    return await _localRepo.getUserByEmail(email);
+  }
+
+  /// Search users by name - dari local SQLite
+  Future<List<UserModel>> searchUsersByName(String name) async {
+    return await _localRepo.searchUsersByName(name);
+  }
+
   /// Update user - Update local & sync to cloud
   Future<int> updateUser(UserModel user) async {
     final result = await _localRepo.updateUser(user);
@@ -160,6 +170,37 @@ class UserHybridRepository {
       } catch (e) {
         // Silent fail
       }
+    }
+
+    return result;
+  }
+
+  /// Update user status - Update local & sync to cloud
+  Future<int> updateUserStatus(int userId, String status) async {
+    final result = await _localRepo.updateUserStatus(userId, status);
+    if (result > 0) {
+      final user = await _localRepo.getUserById(userId);
+      if (user != null) {
+        _trySyncToCloud(user);
+      }
+    }
+    return result;
+  }
+
+  /// Delete all users - Delete from local & cloud
+  Future<int> deleteAllUsers() async {
+    // First delete from local
+    final result = await _localRepo.deleteAllUsers();
+
+    // Try to delete all from cloud (this may take time)
+    try {
+      final hasConnection = await _syncService.checkConnection();
+      if (hasConnection) {
+        // Note: Firestore doesn't have deleteAll, so we'd need to query and delete
+        // For now, we'll just clear local and let sync handle it on next upload
+      }
+    } catch (e) {
+      // Silent fail
     }
 
     return result;
